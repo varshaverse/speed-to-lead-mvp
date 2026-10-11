@@ -142,7 +142,7 @@ Example response from `POST /webhooks/facebook-lead` (values are illustrative):
 }
 ```
 
-Screenshots: `[add a Discord message screenshot here, with the webhook URL hidden]` and `[add a Google Sheet screenshot here]`.
+Shown in Demo - The sheets, discord webhook, appscript, and overall application
 
 ## Google Sheet sync (optional)
 
@@ -213,13 +213,9 @@ The timer starts when the webhook request is received (`time.perf_counter()` in 
 - Latency depends on the LLM and the Discord API, so it varies from run to run.
 
 ## What I would do with more time
-
-- Retry and queue the LLM and delivery calls, with alerts when they fail.
-- Send the drafted reply to the lead itself (SMS and email with a booking link) after a human approves it.
-- Add after-hours rules and round-robin assignment to the team.
 - Sync to the real CRM (GoHighLevel) instead of a Google Sheet.
 - Run the experiment from my growth analysis: compare demo-booking rate for leads contacted in under 5 minutes against the old 22-hour flow.
-- Include the "what if" scenarios
+- Include the edge cases, fallback etc.
 
 ## Security notes
 
