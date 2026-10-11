@@ -1,0 +1,99 @@
+{
+  "name": "Speed-to-Lead Automation (Sub-60s Inbound Response)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "facebook-lead",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook (Facebook Lead Ad)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "YOUR_GOOGLE_SHEET_ID",
+        "range": "Leads!A:G",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Append to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "content": "You are a B2B lead qualification assistant for property managers. Score fit 1-5, classify intent (low/medium/high), give a 1-line reason, and draft a personalized first reply ending with 1 question. Return JSON with keys: fit_score, reason, intent, suggested_reply.",
+              "role": "system"
+            },
+            {
+              "content": "=Lead Data:\nName: {{ $json.body.name }}\nEmail: {{ $json.body.email }}\nPhone: {{ $json.body.phone }}\nCompany: {{ $json.body.company }}\nDoors: {{ $json.body.doors }}\nMessage: {{ $json.body.message }}",
+              "role": "user"
+            }
+          ]
+        },
+        "jsonOutput": true
+      },
+      "id": "3",
+      "name": "OpenAI Qualify Lead & Reply",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "channel": "#speed-to-lead-alerts",
+        "text": "=⚡ *Speed-to-Lead Alert* (Score: {{ $json.message.content.fit_score }}/5)\n*Lead:* {{ $('Webhook (Facebook Lead Ad)').item.json.body.name }} ({{ $('Webhook (Facebook Lead Ad)').item.json.body.company }})\n*Doors:* {{ $('Webhook (Facebook Lead Ad)').item.json.body.doors }}\n*Reason:* {{ $json.message.content.reason }}\n*Suggested Reply:* {{ $json.message.content.suggested_reply }}"
+      },
+      "id": "4",
+      "name": "Send Slack / Discord Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook (Facebook Lead Ad)": {
+      "main": [
+        [
+          {
+            "node": "Append to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "OpenAI Qualify Lead & Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Qualify Lead & Reply": {
+      "main": [
+        [
+          {
+            "node": "Send Slack / Discord Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

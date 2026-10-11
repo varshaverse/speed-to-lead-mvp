@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blaze AI CFO | Speed-to-Lead Automation (Sub-60s Inbound Qualification)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Header / Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="zap" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg text-white tracking-tight flex items-center gap-2">
+            Blaze AI CFO <span class="text-xs uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Speed-to-Lead</span>
+          </h1>
+          <p class="text-xs text-slate-400">Target SLA: &lt;60s Inbound Response</p>
+        </div>
+      </div>
+
+      <!-- Live Service Indicators -->
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <div id="status-badges" class="flex items-center space-x-2 text-xs">
+          <!-- Requirement 1: Badge showing AI: LLM (<model>) vs AI: Heuristic Mode -->
+          <span id="badge-ai" class="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+            <span id="dot-ai" class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
+            <span id="text-ai">AI: Checking...</span>
+          </span>
+          <span id="badge-storage" class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+            <i data-lucide="database" class="w-3 h-3 mr-1 text-slate-400"></i>
+            <span id="text-storage">Storage: Ready</span>
+          </span>
+        </div>
+
+        <a href="/docs" target="_blank" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 transition">
+          <i data-lucide="file-code" class="w-3.5 h-3.5"></i>
+          <span>Swagger API</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
+
+    <!-- KPI Metric Cards (Requirement 3: Seconds, not ms) -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider">
+          <span>Total Ingested</span>
+          <i data-lucide="inbox" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div class="mt-2 text-2xl font-bold text-white" id="stat-total">0</div>
+        <div class="mt-1 text-xs text-slate-500">Live lead submissions</div>
+      </div>
+
+      <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider">
+          <span>Avg SLA Latency</span>
+          <i data-lucide="timer" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div class="mt-2 text-2xl font-bold text-emerald-400 flex items-baseline gap-1" id="stat-speed">
+          0.0 <span class="text-xs text-emerald-500/80">s</span>
+        </div>
+        <div class="mt-1 text-xs text-slate-500">Target: &lt;60.0s end-to-end</div>
+      </div>
+
+      <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider">
+          <span>60s SLA Rate</span>
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-sky-400"></i>
+        </div>
+        <div class="mt-2 text-2xl font-bold text-white flex items-baseline gap-1" id="stat-sla">
+          100<span class="text-xs text-slate-400">%</span>
+        </div>
+        <div class="mt-1 text-xs text-slate-500">% leads delivered under 60s</div>
+      </div>
+
+      <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 shadow-sm relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-medium uppercase tracking-wider">
+          <span>Target Fit (4-5)</span>
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+        </div>
+        <div class="mt-2 text-2xl font-bold text-amber-400" id="stat-qualified">0</div>
+        <div class="mt-1 text-xs text-slate-500">50-500 doors target fit</div>
+      </div>
+    </section>
+
+    <!-- Main Workspace (2-Column Grid) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Lead Simulator & Tester (5 Cols) -->
+      <section class="lg:col-span-5 space-y-5">
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-2xl p-5 shadow-lg shadow-black/20">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div>
+              <h2 class="font-semibold text-base text-white flex items-center gap-2">
+                <i data-lucide="play" class="w-4 h-4 text-indigo-400"></i>
+                Lead Ingestion Simulator
+              </h2>
+              <p class="text-xs text-slate-400 mt-0.5">Test inbound qualification &amp; sub-60s notification</p>
+            </div>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/60 font-mono">
+              POST /webhooks/facebook-lead
+            </span>
+          </div>
+
+          <!-- Presets (Requirement 4: 4 different people & companies) -->
+          <div class="mt-4">
+            <label class="block text-xs font-medium text-slate-400 mb-2">Load Blaze Scenario Presets:</label>
+            <div class="grid grid-cols-1 gap-2" id="presets-container">
+              <!-- Dynamically populated from /api/presets -->
+            </div>
+          </div>
+
+          <!-- Form -->
+          <form id="lead-form" onsubmit="submitLead(event)" class="mt-4 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Full Name</label>
+                <input type="text" id="input-name" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Email</label>
+                <input type="email" id="input-email" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Company</label>
+                <input type="text" id="input-company" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Doors Managed</label>
+                <input type="number" id="input-doors" min="0" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Phone</label>
+              <input type="text" id="input-phone" required class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Inquiry / Lead Message</label>
+              <textarea id="input-message" rows="3" required class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"></textarea>
+            </div>
+
+            <button type="submit" id="btn-submit" class="w-full mt-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition active:scale-[0.98]">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span id="btn-submit-text">Trigger Lead Qualification</span>
+              <span id="live-timer" class="hidden text-amber-300 font-mono text-xs ml-1">0.0s</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Result Card -->
+        <div id="latest-result-card" class="hidden bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden transition-all duration-300">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              AI Qualification Verdict
+            </span>
+            <div id="result-speed-pill" class="text-xs px-2.5 py-1 rounded-full font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+              ⚡ 0.0s end-to-end
+            </div>
+          </div>
+          
+          <div id="result-delivery-banner" class="mt-2 text-[11px] px-2.5 py-1.5 rounded bg-slate-800 text-slate-300 flex items-center justify-between">
+            <span>Delivered via: <b id="result-channel" class="text-indigo-400 font-bold">DISCORD</b></span>
+            <span class="text-emerald-400 font-mono font-semibold" id="result-exact-timing">0.0s end-to-end</span>
+          </div>
+
+          <div id="result-dedupe-banner" class="hidden mt-2 text-[11px] px-2.5 py-1 rounded bg-amber-950/60 text-amber-300 border border-amber-800/40 flex items-center gap-1">
+            <i data-lucide="copy-check" class="w-3.5 h-3.5"></i>
+            <span>Deduplication: Matched lead submitted within 5 mins. Reused previous qualification.</span>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-bold text-white" id="result-score">5</span>
+              <span class="text-xs text-slate-400">/ 5 Fit Score</span>
+              <div id="result-stars" class="flex text-amber-400 ml-2"></div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span id="result-scored-by" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">llm</span>
+              <span id="result-intent-pill" class="text-xs font-semibold uppercase px-2.5 py-1 rounded-md">
+                HIGH INTENT
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div class="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Blaze Evaluation (One Sentence):</div>
+            <p class="text-xs text-slate-200 mt-1 leading-relaxed bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 font-medium" id="result-reason">
+              ...
+            </p>
+          </div>
+
+          <div class="mt-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] uppercase tracking-wider text-slate-400 font-medium">Drafted First Reply:</span>
+              <button onclick="copyReply()" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                <span id="copy-btn-text">Copy</span>
+              </button>
+            </div>
+            <div class="text-xs text-indigo-100 bg-indigo-950/30 border border-indigo-800/40 rounded-xl p-3 mt-1 leading-relaxed font-sans" id="result-reply">
+              ...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Inbound Leads Pipeline (7 Cols) -->
+      <section class="lg:col-span-7 space-y-4">
+        <div class="bg-slate-900/70 border border-slate-800/90 rounded-2xl p-5 shadow-lg flex flex-col h-full">
+          
+          <!-- Pipeline Controls (Requirement 4: Reset Demo Data button) -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <h2 class="font-semibold text-base text-white flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-indigo-400"></i>
+                Inbound Lead Pipeline
+              </h2>
+              <p class="text-xs text-slate-400">Recent leads qualified and logged</p>
+            </div>
+
+            <!-- Action Buttons: Reset Demo Data & Refresh -->
+            <div class="flex items-center gap-2">
+              <button onclick="resetDemoData()" class="text-xs px-2.5 py-1.5 rounded-lg border border-rose-900/60 bg-rose-950/30 text-rose-300 hover:bg-rose-900/40 hover:text-rose-200 transition flex items-center gap-1.5" title="Clear all leads">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Reset demo data</span>
+              </button>
+
+              <select id="filter-status" onchange="loadLeads()" class="bg-slate-950 border border-slate-800 rounded-lg text-xs px-2.5 py-1.5 text-slate-300 focus:outline-none">
+                <option value="">All Statuses</option>
+                <option value="qualified">Qualified</option>
+                <option value="contacted">Contacted</option>
+                <option value="converted">Converted</option>
+                <option value="disqualified">Disqualified</option>
+              </select>
+
+              <button onclick="loadLeads(); loadAnalytics();" class="p-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Refresh">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Leads List Container -->
+          <div class="mt-4 flex-1 overflow-y-auto max-h-[640px] space-y-3 pr-1" id="leads-list">
+            <div class="py-12 text-center text-slate-500 text-xs">
+              <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-600 mb-2"></i>
+              No leads in pipeline. Use the simulator on the left to ingest your first lead!
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Lead Detail Modal -->
+  <div id="lead-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <div id="modal-content" class="space-y-4">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Application Logic -->
+  <script>
+    let presets = {};
+    let timerInterval = null;
+
+    async function init() {
+      lucide.createIcons();
+      await checkHealth();
+      await fetchPresets();
+      await loadLeads();
+      await loadAnalytics();
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        const data = await res.json();
+        
+        // Requirement 1: Header badge must show "AI: LLM (<model>)" when key is present, "AI: Heuristic Mode" otherwise
+        const aiText = document.getElementById('text-ai');
+        const aiDot = document.getElementById('dot-ai');
+        if (data.ai.openai_configured) {
+          aiText.textContent = `AI: LLM (${data.ai.model})`;
+          aiDot.className = 'w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse';
+        } else {
+          aiText.textContent = 'AI: Heuristic Mode';
+          aiDot.className = 'w-2 h-2 rounded-full bg-amber-400 mr-1.5';
+        }
+
+        const storageText = document.getElementById('text-storage');
+        if (data.storage.engine === 'supabase') {
+          storageText.textContent = 'Storage: Supabase';
+        } else {
+          storageText.textContent = 'Storage: SQLite (Local)';
+        }
+      } catch (err) {
+        console.error('Health check failed', err);
+      }
+    }
+
+    async function fetchPresets() {
+      try {
+        const res = await fetch('/api/presets');
+        const data = await res.json();
+        const container = document.getElementById('presets-container');
+        container.innerHTML = '';
+
+        data.forEach((p, idx) => {
+          presets[p.id] = p.lead;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.onclick = () => loadPreset(p.id);
+          btn.className = 'text-left p-2.5 rounded-xl border border-slate-800 hover:border-indigo-500/50 bg-slate-950/60 hover:bg-slate-800/40 text-xs transition group w-full';
+          btn.innerHTML = `
+            <div class="font-medium text-slate-200 group-hover:text-indigo-400">${escapeHtml(p.title)}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(p.hint || '')}</div>
+          `;
+          container.appendChild(btn);
+        });
+
+        // Load first preset by default
+        if (data.length > 0) {
+          loadPreset(data[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch presets', err);
+      }
+    }
+
+    function loadPreset(presetId) {
+      const p = presets[presetId];
+      if (!p) return;
+      document.getElementById('input-name').value = p.name;
+      document.getElementById('input-email').value = p.email;
+      document.getElementById('input-phone').value = p.phone;
+      document.getElementById('input-company').value = p.company;
+      document.getElementById('input-doors').value = p.doors;
+      document.getElementById('input-message').value = p.message;
+    }
+
+    async function submitLead(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-submit');
+      const submitBtnText = document.getElementById('btn-submit-text');
+      const timerDisplay = document.getElementById('live-timer');
+
+      const leadData = {
+        name: document.getElementById('input-name').value,
+        email: document.getElementById('input-email').value,
+        phone: document.getElementById('input-phone').value,
+        company: document.getElementById('input-company').value,
+        doors: parseInt(document.getElementById('input-doors').value, 10),
+        message: document.getElementById('input-message').value,
+      };
+
+      // Start live timer display in seconds
+      submitBtn.disabled = true;
+      submitBtnText.textContent = 'Qualifying & Sending...';
+      timerDisplay.classList.remove('hidden');
+      const startTime = performance.now();
+      timerInterval = setInterval(() => {
+        const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(1);
+        timerDisplay.textContent = `${elapsedSec}s`;
+      }, 100);
+
+      try {
+        const res = await fetch('/api/leads/simulate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(leadData)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Submission error: ${JSON.stringify(err.detail || err)}`);
+          return;
+        }
+
+        const data = await res.json();
+        displayResult(data);
+        await loadLeads();
+        await loadAnalytics();
+      } catch (err) {
+        alert(`Error communicating with backend: ${err.message}`);
+      } finally {
+        clearInterval(timerInterval);
+        submitBtn.disabled = false;
+        submitBtnText.textContent = 'Trigger Lead Qualification';
+        timerDisplay.classList.add('hidden');
+      }
+    }
+
+    function displayResult(data) {
+      const card = document.getElementById('latest-result-card');
+      card.classList.remove('hidden');
+
+      const q = data.qualification;
+      document.getElementById('result-score').textContent = q.fit_score;
+      document.getElementById('result-reason').textContent = q.reason;
+      document.getElementById('result-reply').textContent = q.suggested_reply;
+
+      // Scored By badge
+      const scoredByEl = document.getElementById('result-scored-by');
+      if (scoredByEl) {
+        scoredByEl.textContent = data.scored_by === 'llm' ? 'LLM' : 'heuristic_fallback';
+        scoredByEl.className = data.scored_by === 'llm'
+          ? 'text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/40 font-mono font-medium'
+          : 'text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/40 font-mono font-medium';
+      }
+
+      // Intent pill styling
+      const intentPill = document.getElementById('result-intent-pill');
+      intentPill.textContent = `${q.intent.toUpperCase()} INTENT`;
+      if (q.intent === 'high') {
+        intentPill.className = 'text-xs font-semibold uppercase px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      } else if (q.intent === 'medium') {
+        intentPill.className = 'text-xs font-semibold uppercase px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30';
+      } else {
+        intentPill.className = 'text-xs font-semibold uppercase px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-400 border border-rose-500/30';
+      }
+
+      // Stars
+      const starsContainer = document.getElementById('result-stars');
+      starsContainer.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('i');
+        star.setAttribute('data-lucide', 'star');
+        star.className = `w-4 h-4 ${i <= q.fit_score ? 'fill-amber-400 text-amber-400' : 'text-slate-600'}`;
+        starsContainer.appendChild(star);
+      }
+
+      // Latency badge in seconds (Requirement 3: e.g. "3.8s end-to-end")
+      const secondsVal = data.end_to_end_seconds !== undefined ? Number(data.end_to_end_seconds).toFixed(1) : (data.processing_ms / 1000).toFixed(1);
+      const speedPill = document.getElementById('result-speed-pill');
+      speedPill.textContent = `⚡ ${secondsVal}s end-to-end`;
+
+      // Requirement 2: Delivered via DISCORD / SLACK / INTERNAL_DASHBOARD
+      const chanEl = document.getElementById('result-channel');
+      if (chanEl) chanEl.textContent = (data.delivery_channel || 'INTERNAL_DASHBOARD').toUpperCase();
+
+      const exactEl = document.getElementById('result-exact-timing');
+      if (exactEl) exactEl.textContent = `${secondsVal}s from webhook intake to delivery`;
+
+      // Dedupe notice
+      const dedupeBanner = document.getElementById('result-dedupe-banner');
+      if (data.deduplicated) {
+        dedupeBanner.classList.remove('hidden');
+      } else {
+        dedupeBanner.classList.add('hidden');
+      }
+
+      lucide.createIcons();
+    }
+
+    function copyReply() {
+      const text = document.getElementById('result-reply').textContent;
+      navigator.clipboard.writeText(text);
+      const copyText = document.getElementById('copy-btn-text');
+      copyText.textContent = 'Copied!';
+      setTimeout(() => { copyText.textContent = 'Copy'; }, 2000);
+    }
+
+    async function loadAnalytics() {
+      try {
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
+        document.getElementById('stat-total').textContent = data.total_leads;
+        // Requirement 3: Average SLA latency tile in seconds (e.g. 1.8s)
+        document.getElementById('stat-speed').innerHTML = `${data.avg_processing_ms} <span class="text-xs text-emerald-500/80">s</span>`;
+        document.getElementById('stat-sla').innerHTML = `${data.sla_percentage}<span class="text-xs text-slate-400">%</span>`;
+        document.getElementById('stat-qualified').textContent = (data.score_distribution[5] || 0) + (data.score_distribution[4] || 0);
+      } catch (err) {
+        console.error('Analytics load error', err);
+      }
+    }
+
+    async function resetDemoData() {
+      if (!confirm('Are you sure you want to clear all leads and reset the pipeline?')) return;
+      try {
+        const res = await fetch('/api/admin/reset', { method: 'POST' });
+        if (res.ok) {
+          document.getElementById('latest-result-card').classList.add('hidden');
+          await loadLeads();
+          await loadAnalytics();
+        }
+      } catch (err) {
+        alert('Failed to reset demo data: ' + err.message);
+      }
+    }
+
+    async function loadLeads() {
+      const list = document.getElementById('leads-list');
+      const status = document.getElementById('filter-status').value;
+      const url = status ? `/api/leads?status=${status}` : '/api/leads';
+
+      try {
+        const res = await fetch(url);
+        const leads = await res.json();
+
+        if (leads.length === 0) {
+          list.innerHTML = `
+            <div class="py-12 text-center text-slate-500 text-xs">
+              <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-600 mb-2"></i>
+              Pipeline is empty. Use the simulator on the left to ingest a test lead!
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        list.innerHTML = leads.map(l => {
+          const score = l.fit_score || 0;
+          let scoreBadge = 'bg-slate-800 text-slate-400';
+          if (score >= 4) scoreBadge = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+          else if (score === 3) scoreBadge = 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+          else if (score > 0) scoreBadge = 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+
+          const secDisplay = l.end_to_end_seconds !== null && l.end_to_end_seconds !== undefined
+            ? `⚡ ${Number(l.end_to_end_seconds).toFixed(1)}s`
+            : (l.processing_ms ? `${l.processing_ms}ms` : 'pending');
+
+          return `
+            <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-xs text-white">${escapeHtml(l.name)}</span>
+                  <span class="text-[11px] text-slate-400">• ${escapeHtml(l.company)}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">${l.doors} units</span>
+                  ${l.scored_by === 'heuristic_fallback' ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-950 text-amber-400 font-mono">fallback</span>' : ''}
+                </div>
+                <p class="text-[11px] text-slate-400 line-clamp-1">${escapeHtml(l.message)}</p>
+                <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                  <span class="text-emerald-400 font-mono font-medium">${secDisplay}</span>
+                  <span>•</span>
+                  <span class="text-slate-400 font-mono uppercase">${escapeHtml(l.delivery_channel || 'INTERNAL_DASHBOARD')}</span>
+                  <span>•</span>
+                  <span>${formatTime(l.created_at)}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-2 py-0.5 rounded-full font-medium ${scoreBadge}">
+                  Fit ${score}/5
+                </span>
+                <select onchange="updateStatus('${l.id}', this.value)" class="text-[11px] bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-300 focus:outline-none">
+                  <option value="received" ${l.status === 'received' ? 'selected' : ''}>Received</option>
+                  <option value="qualified" ${l.status === 'qualified' ? 'selected' : ''}>Qualified</option>
+                  <option value="contacted" ${l.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+                  <option value="converted" ${l.status === 'converted' ? 'selected' : ''}>Converted</option>
+                  <option value="disqualified" ${l.status === 'disqualified' ? 'selected' : ''}>Disqualified</option>
+                </select>
+                <button onclick="viewLeadDetail('${l.id}')" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white" title="View details">
+                  <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading leads', err);
+      }
+    }
+
+    async function updateStatus(id, newStatus) {
+      try {
+        await fetch(`/api/leads/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+      } catch (err) {
+        console.error('Error updating status', err);
+      }
+    }
+
+    async function viewLeadDetail(id) {
+      try {
+        const res = await fetch(`/api/leads/${id}`);
+        const lead = await res.json();
+        const modal = document.getElementById('lead-modal');
+        const content = document.getElementById('modal-content');
+
+        const latencySeconds = lead.end_to_end_seconds !== null && lead.end_to_end_seconds !== undefined
+          ? Number(lead.end_to_end_seconds).toFixed(1)
+          : (lead.processing_ms ? (lead.processing_ms / 1000).toFixed(1) : '0.0');
+        const channelBadge = (lead.delivery_channel || 'INTERNAL_DASHBOARD').toUpperCase();
+
+        content.innerHTML = `
+          <div class="border-b border-slate-800 pb-3 flex items-start justify-between">
+            <div>
+              <h3 class="text-base font-semibold text-white">${escapeHtml(lead.name)} — ${escapeHtml(lead.company)}</h3>
+              <div class="text-xs text-slate-400 mt-0.5">${escapeHtml(lead.email)} | ${escapeHtml(lead.phone)} | ${lead.doors} Doors</div>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold border border-emerald-500/20">
+                ⚡ ${latencySeconds}s end-to-end
+              </span>
+              <div class="text-[10px] text-slate-400 mt-1">Delivered via: <b class="text-indigo-400 font-bold">${escapeHtml(channelBadge)}</b></div>
+            </div>
+          </div>
+          <div class="space-y-3.5 text-xs">
+            <div>
+              <div class="text-slate-400 uppercase text-[10px] tracking-wider font-semibold">1. Prospect Inbound Inquiry:</div>
+              <p class="mt-1 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">${escapeHtml(lead.message)}</p>
+            </div>
+            <div>
+              <div class="text-slate-400 uppercase text-[10px] tracking-wider font-semibold flex items-center justify-between">
+                <span>2. Blaze AI Fit Score &amp; One-Line Reason:</span>
+                <span class="text-amber-400 font-bold">Fit ${lead.fit_score || 'N/A'}/5 (${(lead.intent || 'pending').toUpperCase()} INTENT)</span>
+              </div>
+              <p class="mt-1 p-3 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 font-medium leading-relaxed">${escapeHtml(lead.reason || 'Pending qualification')}</p>
+            </div>
+            <div>
+              <div class="text-slate-400 uppercase text-[10px] tracking-wider font-semibold flex items-center justify-between">
+                <span>3. Drafted Personalized First Reply:</span>
+                <span class="text-emerald-400 font-semibold text-[10px]">Under 60s Target Met</span>
+              </div>
+              <div class="mt-1 p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-800/50 text-indigo-100 font-sans leading-relaxed text-xs">
+                ${escapeHtml(lead.suggested_reply || 'Pending reply draft')}
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+              <div>Scored By: <span class="text-slate-200 font-mono">${escapeHtml(lead.scored_by || 'llm')}</span></div>
+              <div>End-to-End Latency: <span class="text-emerald-400 font-mono font-bold">${latencySeconds}s</span></div>
+            </div>
+          </div>
+        `;
+
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+      } catch (err) {
+        alert('Could not load lead detail');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('lead-modal').classList.add('hidden');
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
