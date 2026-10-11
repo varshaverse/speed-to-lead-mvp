@@ -215,12 +215,11 @@ The timer starts when the webhook request is received (`time.perf_counter()` in 
 ## What I would do with more time
 
 - Retry and queue the LLM and delivery calls, with alerts when they fail.
-- Verify the webhook signature from Facebook and validate phone numbers.
 - Send the drafted reply to the lead itself (SMS and email with a booking link) after a human approves it.
 - Add after-hours rules and round-robin assignment to the team.
 - Sync to the real CRM (GoHighLevel) instead of a Google Sheet.
 - Run the experiment from my growth analysis: compare demo-booking rate for leads contacted in under 5 minutes against the old 22-hour flow.
-- Add tests for scoring, fallback, dedupe, and latency storage.
+- Include the "what if" scenarios
 
 ## Security notes
 
